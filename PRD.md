@@ -1,0 +1,1 @@
+AIzaSyDLOkzHNe_go-hQIklvhQ9EGeXGlD011ZM = Gemini API Key

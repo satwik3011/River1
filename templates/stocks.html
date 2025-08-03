@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block title %}All Stocks - River{% endblock %}
+
+{% block content %}
+<div class="stocks-container">
+    <div class="section-header">
+        <h1>All Stocks</h1>
+        <div class="header-actions">
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-filter="all">All</button>
+                <button class="filter-btn" data-filter="BUY">Buy</button>
+                <button class="filter-btn" data-filter="HOLD">Hold</button>
+                <button class="filter-btn" data-filter="SELL">Sell</button>
+            </div>
+            <div class="sort-dropdown">
+                <select id="sort-select">
+                    <option value="value">Sort by Value</option>
+                    <option value="symbol">Sort by Symbol</option>
+                    <option value="recommendation">Sort by Recommendation</option>
+                    <option value="change">Sort by Price Change</option>
+                    <option value="gain_loss">Sort by Gain/Loss</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="stocks-grid" id="stocks-grid">
+        <div class="loading-placeholder">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Loading stocks...</p>
+        </div>
+    </div>
+
+    <!-- Stock Detail Modal -->
+    <div id="stock-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-stock-symbol">AAPL</h2>
+                <button class="modal-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="stock-details">
+                    <div class="detail-section">
+                        <h3>Recommendation</h3>
+                        <div class="recommendation-badge" id="modal-recommendation">BUY</div>
+                        <div class="confidence-score">
+                            <span>Confidence:</span>
+                            <div class="confidence-bar">
+                                <div class="confidence-fill" id="modal-confidence"></div>
+                            </div>
+                            <span id="modal-confidence-text">85%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="detail-section">
+                        <h3>Analysis Scores</h3>
+                        <div class="score-grid">
+                            <div class="score-item">
+                                <span class="score-label">News Sentiment</span>
+                                <div class="score-bar">
+                                    <div class="score-fill" id="modal-news-score"></div>
+                                </div>
+                                <span class="score-value" id="modal-news-value">0.7</span>
+                            </div>
+                            <div class="score-item">
+                                <span class="score-label">Technical</span>
+                                <div class="score-bar">
+                                    <div class="score-fill" id="modal-technical-score"></div>
+                                </div>
+                                <span class="score-value" id="modal-technical-value">0.5</span>
+                            </div>
+                            <div class="score-item">
+                                <span class="score-label">Fundamental</span>
+                                <div class="score-bar">
+                                    <div class="score-fill" id="modal-fundamental-score"></div>
+                                </div>
+                                <span class="score-value" id="modal-fundamental-value">0.8</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="detail-section">
+                        <h3>Reasoning</h3>
+                        <p id="modal-reasoning">Loading analysis...</p>
+                    </div>
+                    
+                    <div class="detail-section">
+                        <h3>Portfolio Info</h3>
+                        <div class="portfolio-info">
+                            <div class="info-item">
+                                <span class="info-label">Shares:</span>
+                                <span id="modal-shares">0</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Current Value:</span>
+                                <span id="modal-current-value">$0.00</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Gain/Loss:</span>
+                                <span id="modal-gain-loss">$0.00 (0.00%)</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-actions">
+                        <button class="btn btn-primary" id="analyze-btn">
+                            <i class="fas fa-sync-alt"></i>
+                            Re-analyze
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/stocks.js') }}"></script>
+{% endblock %}

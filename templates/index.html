@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Home - River{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Portfolio Overview Section -->
+    <section class="portfolio-overview">
+        <div class="section-header">
+            <h1>Portfolio Overview</h1>
+            <div class="last-updated">
+                <i class="fas fa-clock"></i>
+                <span id="last-updated-time">Loading...</span>
+            </div>
+        </div>
+        
+        <div class="overview-cards">
+            <div class="overview-card total-value">
+                <div class="card-icon">
+                    <i class="fas fa-wallet"></i>
+                </div>
+                <div class="card-content">
+                    <h3>Total Value</h3>
+                    <p class="value" id="total-value">$0.00</p>
+                </div>
+            </div>
+            
+            <div class="overview-card total-gain-loss">
+                <div class="card-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="card-content">
+                    <h3>Total Gain/Loss</h3>
+                    <p class="value" id="total-gain-loss">$0.00</p>
+                    <p class="percentage" id="total-gain-loss-percent">0.00%</p>
+                </div>
+            </div>
+            
+            <div class="overview-card stock-count">
+                <div class="card-icon">
+                    <i class="fas fa-chart-pie"></i>
+                </div>
+                <div class="card-content">
+                    <h3>Total Stocks</h3>
+                    <p class="value" id="stock-count">0</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Top Holdings Section -->
+    <section class="top-holdings">
+        <div class="section-header">
+            <h2>Top Holdings</h2>
+            <a href="/stocks" class="view-all-btn">
+                View All
+                <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+        
+        <div class="holdings-grid" id="top-holdings">
+            <div class="loading-placeholder">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Loading holdings...</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Top Changes Section -->
+    <section class="top-changes">
+        <div class="section-header">
+            <h2>Recent Recommendation Changes</h2>
+            <div class="section-subtitle">
+                <i class="fas fa-exclamation-circle"></i>
+                <span>Stocks with changed recommendations in the last 7 days</span>
+            </div>
+        </div>
+        
+        <div class="changes-list" id="top-changes">
+            <div class="loading-placeholder">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Loading recent changes...</p>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}
