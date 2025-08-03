@@ -11,7 +11,7 @@ from app import app, db
 from models import User, Stock, Portfolio, Recommendation
 from services.portfolio_service import PortfolioService
 
-# Sample portfolio holdings
+# Sample portfolio holdings - More diverse portfolio for demo
 SAMPLE_HOLDINGS = [
     {
         'symbol': 'AAPL',
@@ -20,46 +20,34 @@ SAMPLE_HOLDINGS = [
         'purchase_date': datetime.now() - timedelta(days=180)
     },
     {
-        'symbol': 'GOOGL',
-        'shares': 25,
-        'average_cost': 2250.75,
-        'purchase_date': datetime.now() - timedelta(days=120)
-    },
-    {
-        'symbol': 'MSFT',
-        'shares': 40,
-        'average_cost': 285.60,
-        'purchase_date': datetime.now() - timedelta(days=90)
-    },
-    {
-        'symbol': 'TSLA',
-        'shares': 30,
-        'average_cost': 220.45,
-        'purchase_date': datetime.now() - timedelta(days=60)
-    },
-    {
-        'symbol': 'AMZN',
-        'shares': 15,
-        'average_cost': 125.80,
-        'purchase_date': datetime.now() - timedelta(days=150)
-    },
-    {
-        'symbol': 'NVDA',
-        'shares': 20,
-        'average_cost': 450.25,
-        'purchase_date': datetime.now() - timedelta(days=200)
-    },
-    {
         'symbol': 'META',
         'shares': 35,
         'average_cost': 185.90,
         'purchase_date': datetime.now() - timedelta(days=75)
     },
     {
-        'symbol': 'NFLX',
-        'shares': 18,
-        'average_cost': 380.50,
-        'purchase_date': datetime.now() - timedelta(days=100)
+        'symbol': 'GOOGL',
+        'shares': 25,
+        'average_cost': 125.50,
+        'purchase_date': datetime.now() - timedelta(days=120)
+    },
+    {
+        'symbol': 'MSFT',
+        'shares': 60,
+        'average_cost': 280.75,
+        'purchase_date': datetime.now() - timedelta(days=200)
+    },
+    {
+        'symbol': 'TSLA',
+        'shares': 40,
+        'average_cost': 220.15,
+        'purchase_date': datetime.now() - timedelta(days=90)
+    },
+    {
+        'symbol': 'NVDA',
+        'shares': 15,
+        'average_cost': 420.80,
+        'purchase_date': datetime.now() - timedelta(days=150)
     }
 ]
 
@@ -68,20 +56,20 @@ def create_sample_portfolio():
     with app.app_context():
         portfolio_service = PortfolioService()
         
-        # Create or get test user
-        test_user = User.query.filter_by(email='test@riverapp.com').first()
-        if not test_user:
-            test_user = User(
-                google_id='test_user_123',
-                email='test@riverapp.com',
-                name='Test User',
+        # Create or get specific user
+        target_user = User.query.filter_by(email='satwikdudeja@gmail.com').first()
+        if not target_user:
+            target_user = User(
+                google_id='satwik_demo_user_001',
+                email='satwikdudeja@gmail.com',
+                name='Satwik Dudeja',
                 picture=''
             )
-            db.session.add(test_user)
+            db.session.add(target_user)
             db.session.commit()
-            print("✓ Created test user: test@riverapp.com")
+            print("✓ Created demo user: satwikdudeja@gmail.com")
         else:
-            print("✓ Using existing test user: test@riverapp.com")
+            print("✓ Using existing demo user: satwikdudeja@gmail.com")
         
         print("Creating sample portfolio...")
         
@@ -91,7 +79,7 @@ def create_sample_portfolio():
                     symbol=holding['symbol'],
                     shares=holding['shares'],
                     average_cost=holding['average_cost'],
-                    user_id=test_user.id,
+                    user_id=target_user.id,
                     purchase_date=holding['purchase_date'].date()
                 )
                 

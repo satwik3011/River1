@@ -51,6 +51,14 @@ class FinanceApp {
                 this.hideNotification();
             }
         });
+
+        // Modal analyze button
+        const modalAnalyzeBtn = document.getElementById('modal-analyze-btn');
+        if (modalAnalyzeBtn) {
+            modalAnalyzeBtn.addEventListener('click', () => {
+                this.reAnalyzeModalStock();
+            });
+        }
     }
 
     setupNotifications() {
@@ -242,7 +250,7 @@ class FinanceApp {
     getGainLossClass(value) {
         if (value > 0) return 'positive';
         if (value < 0) return 'negative';
-        return '';
+        return 'neutral';
     }
 
     updateLastUpdatedTime() {
@@ -300,6 +308,216 @@ class FinanceApp {
 
         const percentage = Math.max(0, Math.min(100, confidence * 100));
         barElement.style.width = `${percentage}%`;
+    }
+
+    // Unified Stock Modal Manager
+    openStockModal(stock, companyName = null) {
+        if (!stock) return;
+
+        // Update modal title and company name
+        const symbolEl = document.getElementById('modal-stock-symbol');
+        const companyEl = document.getElementById('modal-company-name');
+        if (symbolEl) symbolEl.textContent = stock.symbol;
+        if (companyEl) companyEl.textContent = companyName || stock.company_name || stock.symbol;
+
+        // Update price information
+        this.updateModalPriceInfo(stock);
+        
+        // Update recommendation
+        this.updateModalRecommendation(stock);
+        
+        // Update analysis scores
+        this.updateModalAnalysisScores(stock);
+        
+        // Update reasoning
+        this.updateModalReasoning(stock);
+        
+        // Update portfolio information
+        this.updateModalPortfolioInfo(stock);
+
+        // Store current stock symbol for re-analysis
+        this.currentModalStock = stock.symbol;
+        
+        // Show modal
+        this.openModal('stock-modal');
+    }
+
+    updateModalPriceInfo(stock) {
+        const currentPriceEl = document.getElementById('modal-current-price');
+        const priceChangeEl = document.getElementById('modal-price-change');
+
+        if (currentPriceEl) {
+            currentPriceEl.textContent = this.formatCurrency(stock.current_price);
+        }
+
+        if (priceChangeEl && stock.current_price && stock.previous_close) {
+            const priceChange = stock.current_price - stock.previous_close;
+            const changePercent = (priceChange / stock.previous_close) * 100;
+            
+            const changeValueEl = priceChangeEl.querySelector('.change-value');
+            const changePercentEl = priceChangeEl.querySelector('.change-percent');
+            
+            if (changeValueEl) {
+                changeValueEl.textContent = `${priceChange >= 0 ? '+' : ''}${this.formatCurrency(priceChange)}`;
+                changeValueEl.className = `change-value ${this.getGainLossClass(priceChange)}`;
+            }
+            
+            if (changePercentEl) {
+                changePercentEl.textContent = `(${changePercent >= 0 ? '+' : ''}${changePercent.toFixed(2)}%)`;
+                changePercentEl.className = `change-percent ${this.getGainLossClass(priceChange)}`;
+            }
+        }
+    }
+
+    updateModalRecommendation(stock) {
+        const recommendation = stock.recommendation;
+        if (!recommendation) return;
+
+        // Update recommendation badge
+        const badgeEl = document.getElementById('modal-recommendation');
+        if (badgeEl) {
+            badgeEl.textContent = recommendation.action;
+            badgeEl.className = `recommendation-badge ${recommendation.action}`;
+        }
+
+        // Update confidence
+        const confidenceBarEl = document.getElementById('modal-confidence-bar');
+        const confidenceTextEl = document.getElementById('modal-confidence-text');
+        
+        if (confidenceBarEl) {
+            this.updateConfidenceBar(confidenceBarEl, recommendation.confidence);
+        }
+        
+        if (confidenceTextEl) {
+            confidenceTextEl.textContent = `${(recommendation.confidence * 100).toFixed(0)}%`;
+        }
+    }
+
+    updateModalAnalysisScores(stock) {
+        const recommendation = stock.recommendation;
+        if (!recommendation) return;
+
+        const scores = [
+            { 
+                scoreId: 'modal-technical-score', 
+                valueId: 'modal-technical-value', 
+                score: recommendation.technical_score 
+            },
+            { 
+                scoreId: 'modal-fundamental-score', 
+                valueId: 'modal-fundamental-value', 
+                score: recommendation.fundamental_score 
+            },
+            { 
+                scoreId: 'modal-news-score', 
+                valueId: 'modal-news-value', 
+                score: recommendation.news_sentiment 
+            }
+        ];
+
+        scores.forEach(({ scoreId, valueId, score }) => {
+            const scoreEl = document.getElementById(scoreId);
+            const valueEl = document.getElementById(valueId);
+            
+            if (scoreEl && valueEl && score !== null && score !== undefined) {
+                this.updateScoreBar(scoreEl, score, false);
+                valueEl.textContent = score.toFixed(2);
+            }
+        });
+    }
+
+    updateModalReasoning(stock) {
+        const reasoningEl = document.getElementById('modal-reasoning');
+        if (!reasoningEl || !stock.recommendation) return;
+
+        const reasoning = stock.recommendation.reasoning || 'No reasoning available';
+        
+        // Check if reasoning contains bullet points
+        if (reasoning.includes('•')) {
+            // Split by bullet points and clean up
+            const bulletPoints = reasoning
+                .split('•')
+                .map(point => point.trim())
+                .filter(point => point.length > 0 && point !== '\n');
+            
+            // Create proper HTML list
+            reasoningEl.innerHTML = '<ul>' + 
+                bulletPoints.map(point => `<li>${point}</li>`).join('') + 
+                '</ul>';
+        } else {
+            reasoningEl.textContent = reasoning;
+        }
+    }
+
+    updateModalPortfolioInfo(stock) {
+        const elements = {
+            'modal-shares': stock.shares?.toString() || '0',
+            'modal-avg-cost': this.formatCurrency(stock.avg_cost || 0),
+            'modal-market-value': this.formatCurrency(stock.current_value || stock.market_value || 0),
+            'modal-gain-loss': this.formatGainLoss(stock.gain_loss, stock.gain_loss_percent)
+        };
+
+        Object.entries(elements).forEach(([id, value]) => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.textContent = value;
+                
+                // Apply gain/loss coloring
+                if (id === 'modal-gain-loss') {
+                    element.className = `portfolio-value gain-loss-value ${this.getGainLossClass(stock.gain_loss)}`;
+                }
+            }
+        });
+    }
+
+    formatGainLoss(gainLoss, gainLossPercent) {
+        const currency = this.formatCurrency(gainLoss || 0);
+        const percent = gainLossPercent !== null && gainLossPercent !== undefined 
+            ? `${gainLossPercent >= 0 ? '+' : ''}${gainLossPercent.toFixed(2)}%`
+            : '0.00%';
+        return `${currency} (${percent})`;
+    }
+
+    async reAnalyzeModalStock() {
+        if (!this.currentModalStock) return;
+
+        const analyzeBtn = document.getElementById('modal-analyze-btn');
+        if (analyzeBtn) {
+            analyzeBtn.disabled = true;
+            const originalContent = analyzeBtn.innerHTML;
+            analyzeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
+        }
+
+        try {
+            await this.analyzeStock(this.currentModalStock);
+            this.showNotification(`Analysis completed for ${this.currentModalStock}`, 'success');
+            
+            // Refresh data and update modal
+            if (typeof window.dashboard !== 'undefined') {
+                await window.dashboard.loadData();
+                // Find updated stock data and refresh modal
+                const updatedStock = window.dashboard.stocks?.find(s => s.symbol === this.currentModalStock);
+                if (updatedStock) {
+                    this.openStockModal(updatedStock);
+                }
+            }
+            if (typeof window.stocksPage !== 'undefined') {
+                await window.stocksPage.loadStocks();
+                // Find updated stock data and refresh modal
+                const updatedStock = window.stocksPage.stocks?.find(s => s.symbol === this.currentModalStock);
+                if (updatedStock) {
+                    this.openStockModal(updatedStock);
+                }
+            }
+            
+        } catch (error) {
+            this.showNotification(`Failed to analyze ${this.currentModalStock}`, 'error');
+        } finally {
+            if (analyzeBtn) {
+                analyzeBtn.disabled = false;
+                analyzeBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Re-analyze Stock';
+            }
+        }
     }
 }
 

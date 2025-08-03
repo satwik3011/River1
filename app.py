@@ -29,8 +29,12 @@ login_manager.init_app(app)
 login_manager.login_view = 'login'
 login_manager.login_message = 'Please log in to access River portfolio.'
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
+# Configure logging with detailed format
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
 logger = logging.getLogger(__name__)
 
 # Initialize OAuth
@@ -115,10 +119,25 @@ def get_top_changes():
 @app.route('/api/analyze/<symbol>')
 @login_required
 def analyze_stock(symbol):
-    """Trigger LLM analysis for a specific stock"""
+    """Trigger LLM analysis for a specific stock and save to database"""
     try:
-        result = llm_service.analyze_stock(symbol.upper())
-        return jsonify(result)
+        # Use recommendation service to analyze and save to database
+        result = recommendation_service.create_recommendation_for_stock(symbol.upper())
+        
+        if result:
+            logger.info(f"✅ Analysis saved for {symbol}: {result['recommendation']} (confidence: {result['confidence_score']:.2f})")
+            return jsonify({
+                'success': True,
+                'symbol': symbol.upper(),
+                'message': f'Analysis completed for {symbol.upper()}',
+                'recommendation': result['recommendation'],
+                'confidence': result['confidence_score'],
+                'timestamp': result['created_at']
+            })
+        else:
+            logger.error(f"Failed to create recommendation for {symbol}")
+            return jsonify({'error': f'Failed to analyze stock {symbol}'}), 500
+            
     except Exception as e:
         logger.error(f"Error analyzing stock {symbol}: {str(e)}")
         return jsonify({'error': f'Failed to analyze stock {symbol}'}), 500

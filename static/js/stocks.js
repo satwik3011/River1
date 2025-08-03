@@ -40,15 +40,6 @@ class StocksPage {
                 this.openStockModal(symbol);
             }
         });
-
-        // Modal analyze button
-        const analyzeBtn = document.getElementById('analyze-btn');
-        if (analyzeBtn) {
-            analyzeBtn.addEventListener('click', () => {
-                const symbol = document.getElementById('modal-stock-symbol').textContent;
-                this.analyzeStock(symbol);
-            });
-        }
     }
 
     async loadStocks() {
@@ -190,99 +181,8 @@ class StocksPage {
 
     openStockModal(symbol) {
         const stock = this.stocks.find(s => s.symbol === symbol);
-        if (!stock) return;
-
-        // Update modal content
-        document.getElementById('modal-stock-symbol').textContent = symbol;
-        
-        const recommendationEl = document.getElementById('modal-recommendation');
-        if (recommendationEl) {
-            recommendationEl.textContent = stock.recommendation.action;
-            recommendationEl.className = `recommendation-badge ${stock.recommendation.action}`;
-        }
-
-        // Update confidence
-        const confidenceBar = document.getElementById('modal-confidence');
-        const confidenceText = document.getElementById('modal-confidence-text');
-        if (confidenceBar && confidenceText) {
-            this.app.updateConfidenceBar(confidenceBar, stock.recommendation.confidence);
-            confidenceText.textContent = `${(stock.recommendation.confidence * 100).toFixed(0)}%`;
-        }
-
-        // Update analysis scores
-        this.updateModalScores(stock.recommendation);
-
-        // Update reasoning
-        const reasoningEl = document.getElementById('modal-reasoning');
-        if (reasoningEl) {
-            reasoningEl.textContent = stock.recommendation.reasoning || 'No reasoning available';
-        }
-
-        // Update portfolio info
-        this.updateModalPortfolioInfo(stock);
-
-        // Show modal
-        this.app.openModal('stock-modal');
-    }
-
-    updateModalScores(recommendation) {
-        const scores = [
-            { id: 'modal-news-score', value: 'modal-news-value', score: recommendation.news_sentiment },
-            { id: 'modal-technical-score', value: 'modal-technical-value', score: recommendation.technical_score },
-            { id: 'modal-fundamental-score', value: 'modal-fundamental-value', score: recommendation.fundamental_score }
-        ];
-
-        scores.forEach(({ id, value, score }) => {
-            const barEl = document.getElementById(id);
-            const valueEl = document.getElementById(value);
-            
-            if (barEl && valueEl) {
-                this.app.updateScoreBar(barEl, score || 0);
-                valueEl.textContent = (score || 0).toFixed(2);
-            }
-        });
-    }
-
-    updateModalPortfolioInfo(stock) {
-        const elements = {
-            'modal-shares': stock.shares.toString(),
-            'modal-current-value': this.app.formatCurrency(stock.current_value),
-            'modal-gain-loss': `${this.app.formatCurrency(stock.gain_loss)} (${stock.gain_loss_percent > 0 ? '+' : ''}${stock.gain_loss_percent.toFixed(2)}%)`
-        };
-
-        Object.entries(elements).forEach(([id, value]) => {
-            const element = document.getElementById(id);
-            if (element) {
-                element.textContent = value;
-                if (id === 'modal-gain-loss') {
-                    element.className = this.app.getGainLossClass(stock.gain_loss);
-                }
-            }
-        });
-    }
-
-    async analyzeStock(symbol) {
-        const analyzeBtn = document.getElementById('analyze-btn');
-        if (analyzeBtn) {
-            analyzeBtn.disabled = true;
-            analyzeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
-        }
-
-        try {
-            await this.app.analyzeStock(symbol);
-            this.app.showNotification(`Analysis completed for ${symbol}`, 'success');
-            
-            // Reload stocks and update modal
-            await this.loadStocks();
-            this.openStockModal(symbol);
-            
-        } catch (error) {
-            this.app.showNotification(`Failed to analyze ${symbol}`, 'error');
-        } finally {
-            if (analyzeBtn) {
-                analyzeBtn.disabled = false;
-                analyzeBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Re-analyze';
-            }
+        if (stock && this.app) {
+            this.app.openStockModal(stock);
         }
     }
 

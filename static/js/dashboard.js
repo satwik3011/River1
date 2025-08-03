@@ -24,6 +24,13 @@ class Dashboard {
         });
     }
 
+    openStockModal(symbol) {
+        const stock = this.stocks?.find(s => s.symbol === symbol);
+        if (stock && this.app) {
+            this.app.openStockModal(stock);
+        }
+    }
+
     async loadData() {
         try {
             // Load all data in parallel
@@ -38,8 +45,8 @@ class Dashboard {
             this.renderTopChanges(topChanges);
             this.app.updateLastUpdatedTime();
             
-            // Store stocks data globally for modal access
-            window.currentStocksData = stocks;
+            // Store stocks data for modal access
+            this.stocks = stocks;
 
         } catch (error) {
             console.error('Error loading dashboard data:', error);
@@ -243,50 +250,4 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     
     initDashboard();
-    
-    // Add stock modal functionality to dashboard after initialization
-    setTimeout(() => {
-        if (window.dashboard) {
-            // Add modal functionality for clickable cards
-            window.dashboard.openStockModal = function(symbol) {
-                // Find the stock data from the current stocks data
-                if (window.currentStocksData) {
-                    const stockData = window.currentStocksData.find(stock => stock.symbol === symbol);
-                    if (stockData) {
-                        this.updateModalContent(stockData);
-                        this.app.openModal('stock-modal');
-                    }
-                }
-            };
-
-            window.dashboard.updateModalContent = function(stock) {
-                const elements = {
-                    'modal-stock-symbol': stock.symbol,
-                    'modal-shares': stock.shares?.toString() || '0',
-                    'modal-current-value': this.app.formatCurrency(stock.current_value || 0),
-                    'modal-gain-loss': `${this.app.formatCurrency(stock.gain_loss || 0)} (${stock.gain_loss_percent > 0 ? '+' : ''}${(stock.gain_loss_percent || 0).toFixed(2)}%)`
-                };
-
-                Object.entries(elements).forEach(([id, value]) => {
-                    const element = document.getElementById(id);
-                    if (element) {
-                        element.textContent = value;
-                    }
-                });
-
-                // Update recommendation badge
-                const recommendationEl = document.getElementById('modal-recommendation');
-                if (recommendationEl && stock.recommendation) {
-                    recommendationEl.textContent = stock.recommendation.action;
-                    recommendationEl.className = `recommendation-badge ${stock.recommendation.action}`;
-                }
-
-                // Update reasoning
-                const reasoningEl = document.getElementById('modal-reasoning');
-                if (reasoningEl && stock.recommendation) {
-                    reasoningEl.textContent = stock.recommendation.reasoning || 'No reasoning available';
-                }
-            };
-        }
-    }, 100);
 });

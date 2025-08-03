@@ -75,6 +75,129 @@
         </div>
     </div>
 
+    <!-- Unified Stock Detail Modal -->
+    <div id="stock-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <h2 id="modal-stock-symbol">Stock Details</h2>
+                    <p id="modal-company-name" class="modal-subtitle">Company Name</p>
+                </div>
+                <button class="modal-close" aria-label="Close modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="stock-details">
+                    <!-- Price Section -->
+                    <div class="detail-section price-section">
+                        <div class="price-info">
+                            <div class="current-price">
+                                <span class="price-label">Current Price</span>
+                                <span id="modal-current-price" class="price-value">$0.00</span>
+                            </div>
+                            <div class="price-change" id="modal-price-change">
+                                <span class="change-value">+$0.00</span>
+                                <span class="change-percent">(+0.00%)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recommendation Section -->
+                    <div class="detail-section">
+                        <h3>AI Recommendation</h3>
+                        <div class="recommendation-container">
+                            <div class="recommendation-badge" id="modal-recommendation">HOLD</div>
+                            <div class="confidence-display">
+                                <div class="confidence-label">Confidence Level</div>
+                                <div class="confidence-bar-container">
+                                    <div class="confidence-bar">
+                                        <div class="confidence-fill" id="modal-confidence-bar"></div>
+                                    </div>
+                                    <span id="modal-confidence-text" class="confidence-text">0%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Analysis Scores Section -->
+                    <div class="detail-section">
+                        <h3>Analysis Breakdown</h3>
+                        <div class="analysis-scores">
+                            <div class="score-item">
+                                <div class="score-header">
+                                    <span class="score-label">Technical Analysis</span>
+                                    <span class="score-value" id="modal-technical-value">0.0</span>
+                                </div>
+                                <div class="score-bar">
+                                    <div class="score-fill" id="modal-technical-score"></div>
+                                </div>
+                            </div>
+                            <div class="score-item">
+                                <div class="score-header">
+                                    <span class="score-label">Fundamental Analysis</span>
+                                    <span class="score-value" id="modal-fundamental-value">0.0</span>
+                                </div>
+                                <div class="score-bar">
+                                    <div class="score-fill" id="modal-fundamental-score"></div>
+                                </div>
+                            </div>
+                            <div class="score-item">
+                                <div class="score-header">
+                                    <span class="score-label">News Sentiment</span>
+                                    <span class="score-value" id="modal-news-value">0.0</span>
+                                </div>
+                                <div class="score-bar">
+                                    <div class="score-fill" id="modal-news-score"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Reasoning Section -->
+                    <div class="detail-section">
+                        <h3>Analysis Reasoning</h3>
+                        <div class="reasoning-content" id="modal-reasoning">
+                            Loading analysis...
+                        </div>
+                    </div>
+
+                    <!-- Portfolio Information Section -->
+                    <div class="detail-section">
+                        <h3>Portfolio Information</h3>
+                        <div class="portfolio-grid">
+                            <div class="portfolio-item">
+                                <span class="portfolio-label">Shares Owned</span>
+                                <span id="modal-shares" class="portfolio-value">0</span>
+                            </div>
+                            <div class="portfolio-item">
+                                <span class="portfolio-label">Average Cost</span>
+                                <span id="modal-avg-cost" class="portfolio-value">$0.00</span>
+                            </div>
+                            <div class="portfolio-item">
+                                <span class="portfolio-label">Market Value</span>
+                                <span id="modal-market-value" class="portfolio-value">$0.00</span>
+                            </div>
+                            <div class="portfolio-item">
+                                <span class="portfolio-label">Total Gain/Loss</span>
+                                <span id="modal-gain-loss" class="portfolio-value gain-loss-value">$0.00 (0.00%)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button class="btn btn-secondary modal-close">Close</button>
+                <button class="btn btn-primary" id="modal-analyze-btn">
+                    <i class="fas fa-sync-alt"></i>
+                    Re-analyze Stock
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     {% block scripts %}{% endblock %}
 </body>

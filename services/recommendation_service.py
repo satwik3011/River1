@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from sqlalchemy import desc, and_
 from models import Stock, Recommendation, Portfolio, RecommendationHistory, db
 from services.llm_analysis_service import LLMAnalysisService
@@ -119,67 +120,130 @@ class RecommendationService:
             raise
     
     def refresh_all_recommendations(self) -> Dict:
-        """Refresh recommendations for all portfolio stocks"""
+        """Refresh recommendations for all portfolio stocks using PARALLEL processing"""
         try:
             portfolio_stocks = Portfolio.query.filter_by(is_active=True).join(Stock).all()
+            
+            if not portfolio_stocks:
+                return {
+                    'success': True,
+                    'updated_count': 0,
+                    'changed_count': 0,
+                    'total_stocks': 0,
+                    'errors': [],
+                    'timestamp': datetime.utcnow().isoformat()
+                }
+            
+            self.logger.info(f"🚀 STARTING PARALLEL PORTFOLIO REFRESH for {len(portfolio_stocks)} stocks")
             
             updated_count = 0
             changed_count = 0
             errors = []
             
-            for holding in portfolio_stocks:
+            # Define function to analyze a single stock
+            def analyze_single_stock(holding):
                 try:
                     stock = holding.stock
-                    self.logger.info(f"Analyzing {stock.symbol}...")
+                    self.logger.info(f"🔍 Analyzing {stock.symbol}...")
                     
-                    # Get LLM analysis
+                    # Get LLM analysis (already parallelized internally)
                     analysis_result = self.llm_service.analyze_stock(stock.symbol)
                     
-                    # Get previous recommendation
-                    previous_recommendation = (Recommendation.query
-                                             .filter_by(stock_id=stock.id)
-                                             .order_by(desc(Recommendation.created_at))
-                                             .first())
-                    
-                    # Create new recommendation
-                    new_recommendation = Recommendation(
-                        stock_id=stock.id,
-                        recommendation=analysis_result['recommendation'],
-                        confidence_score=analysis_result['confidence_score'],
-                        reasoning=analysis_result['reasoning'],
-                        news_sentiment=analysis_result['news_sentiment'],
-                        technical_score=analysis_result['technical_score'],
-                        fundamental_score=analysis_result['fundamental_score'],
-                        recent_news=analysis_result['recent_news'],
-                        technical_indicators=analysis_result['technical_indicators']
-                    )
-                    
-                    db.session.add(new_recommendation)
-                    
-                    # Check if recommendation changed
-                    if (previous_recommendation and 
-                        previous_recommendation.recommendation != analysis_result['recommendation']):
-                        
-                        # Record the change
-                        change_record = RecommendationHistory(
-                            stock_id=stock.id,
-                            previous_recommendation=previous_recommendation.recommendation,
-                            new_recommendation=analysis_result['recommendation']
-                        )
-                        
-                        db.session.add(change_record)
-                        changed_count += 1
-                        
-                        self.logger.info(f"{stock.symbol}: {previous_recommendation.recommendation} -> {analysis_result['recommendation']}")
-                    
-                    updated_count += 1
+                    return {
+                        'success': True,
+                        'stock': stock,
+                        'analysis_result': analysis_result,
+                        'holding': holding
+                    }
                     
                 except Exception as e:
                     error_msg = f"Error analyzing {holding.stock.symbol}: {str(e)}"
                     self.logger.error(error_msg)
-                    errors.append(error_msg)
+                    return {
+                        'success': False,
+                        'error': error_msg,
+                        'stock': holding.stock,
+                        'holding': holding
+                    }
             
+            # PARALLEL EXECUTION: Analyze all stocks concurrently
+            max_workers = min(len(portfolio_stocks), 5)  # Limit concurrent API calls
+            self.logger.info(f"⚡ Running {len(portfolio_stocks)} stock analyses with {max_workers} parallel workers")
+            
+            with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                # Submit all stock analyses
+                future_to_stock = {
+                    executor.submit(analyze_single_stock, holding): holding.stock.symbol
+                    for holding in portfolio_stocks
+                }
+                
+                # Process completed analyses
+                for future in as_completed(future_to_stock):
+                    symbol = future_to_stock[future]
+                    try:
+                        result = future.result()
+                        
+                        if result['success']:
+                            # Process successful analysis
+                            stock = result['stock']
+                            analysis_result = result['analysis_result']
+                            
+                            # Get previous recommendation
+                            previous_recommendation = (Recommendation.query
+                                                     .filter_by(stock_id=stock.id)
+                                                     .order_by(desc(Recommendation.created_at))
+                                                     .first())
+                            
+                            # Create new recommendation
+                            new_recommendation = Recommendation(
+                                stock_id=stock.id,
+                                recommendation=analysis_result['recommendation'],
+                                confidence_score=analysis_result['confidence_score'],
+                                reasoning=analysis_result['reasoning'],
+                                news_sentiment=analysis_result['news_sentiment'],
+                                technical_score=analysis_result['technical_score'],
+                                fundamental_score=analysis_result['fundamental_score'],
+                                recent_news=analysis_result['recent_news'],
+                                technical_indicators=analysis_result['technical_indicators']
+                            )
+                            
+                            db.session.add(new_recommendation)
+                            
+                            # Check if recommendation changed
+                            if (previous_recommendation and 
+                                previous_recommendation.recommendation != analysis_result['recommendation']):
+                                
+                                # Record the change
+                                change_record = RecommendationHistory(
+                                    stock_id=stock.id,
+                                    previous_recommendation=previous_recommendation.recommendation,
+                                    new_recommendation=analysis_result['recommendation']
+                                )
+                                
+                                db.session.add(change_record)
+                                changed_count += 1
+                                
+                                self.logger.info(f"📈 {stock.symbol}: {previous_recommendation.recommendation} -> {analysis_result['recommendation']}")
+                            
+                            updated_count += 1
+                            self.logger.info(f"✅ {symbol} analysis completed successfully")
+                            
+                        else:
+                            # Handle failed analysis
+                            errors.append(result['error'])
+                            
+                    except Exception as e:
+                        error_msg = f"Error processing result for {symbol}: {str(e)}"
+                        self.logger.error(error_msg)
+                        errors.append(error_msg)
+            
+            # Commit all changes at once
             db.session.commit()
+            
+            self.logger.info(f"🎉 PARALLEL PORTFOLIO REFRESH COMPLETE!")
+            self.logger.info(f"   Updated: {updated_count}/{len(portfolio_stocks)} stocks")
+            self.logger.info(f"   Changed recommendations: {changed_count}")
+            self.logger.info(f"   Errors: {len(errors)}")
             
             return {
                 'success': True,
@@ -192,7 +256,7 @@ class RecommendationService:
             
         except Exception as e:
             db.session.rollback()
-            self.logger.error(f"Error refreshing all recommendations: {str(e)}")
+            self.logger.error(f"Error in parallel portfolio refresh: {str(e)}")
             raise
     
     def get_recommendation_for_stock(self, symbol: str) -> Optional[Dict]:
