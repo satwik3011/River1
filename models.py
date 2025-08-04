@@ -10,19 +10,57 @@ class User(UserMixin, db.Model):
     __tablename__ = 'users'
     
     id = db.Column(db.Integer, primary_key=True)
-    google_id = db.Column(db.String(100), unique=True, nullable=False, index=True)
+    
+    # Google OAuth fields (keeping for backward compatibility)
+    google_id = db.Column(db.String(100), unique=True, nullable=True, index=True)
+    
+    # Upstox OAuth fields
+    upstox_user_id = db.Column(db.String(100), unique=True, nullable=True, index=True)
+    upstox_access_token = db.Column(db.Text, nullable=True)  # Current access token
+    upstox_extended_token = db.Column(db.Text, nullable=True)  # Long-term token
+    upstox_token_expires_at = db.Column(db.DateTime, nullable=True)  # Token expiry
+    
+    # User profile data
     email = db.Column(db.String(120), unique=True, nullable=False, index=True)
     name = db.Column(db.String(100), nullable=False)
     picture = db.Column(db.String(200))
+    
+    # Upstox specific user data
+    broker = db.Column(db.String(50), default='UPSTOX')
+    user_type = db.Column(db.String(20), default='individual')
+    exchanges = db.Column(db.JSON)  # List of enabled exchanges
+    products = db.Column(db.JSON)   # List of enabled products
+    order_types = db.Column(db.JSON)  # List of enabled order types
+    is_upstox_active = db.Column(db.Boolean, default=False)
+    poa = db.Column(db.Boolean, default=False)  # Power of Attorney
+    
+    # General fields
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     last_login = db.Column(db.DateTime)
+    upstox_last_sync = db.Column(db.DateTime)  # Last portfolio sync time
     
     # Relationships
     portfolios = db.relationship('Portfolio', backref='user', lazy=True, cascade='all, delete-orphan')
     
     def __repr__(self):
         return f'<User {self.email}: {self.name}>'
+    
+    @property
+    def is_upstox_token_valid(self):
+        """Check if the Upstox access token is still valid"""
+        if not self.upstox_access_token or not self.upstox_token_expires_at:
+            return False
+        return datetime.utcnow() < self.upstox_token_expires_at
+    
+    def update_upstox_tokens(self, access_token, extended_token=None, expires_at=None):
+        """Update Upstox tokens"""
+        self.upstox_access_token = access_token
+        if extended_token:
+            self.upstox_extended_token = extended_token
+        if expires_at:
+            self.upstox_token_expires_at = expires_at
+        db.session.commit()
 
 class Stock(db.Model):
     """Model for stock information"""
