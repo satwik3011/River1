@@ -54,45 +54,36 @@
             line-height: 1.5;
         }
         
-        .upstox-login-btn {
+        .google-login-btn {
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 16px;
             width: 100%;
             padding: 16px 32px;
-            background: #7B2D8E;
-            border: 1px solid #7B2D8E;
+            background: #fff;
+            border: 1px solid #dadce0;
             border-radius: 12px;
             font-size: 1rem;
             font-weight: 500;
-            color: white;
+            color: #3c4043;
             cursor: pointer;
             transition: var(--transition);
             text-decoration: none;
             margin-bottom: 1rem;
         }
         
-        .upstox-login-btn:hover {
-            background: #6D2A7B;
-            border-color: #6D2A7B;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 16px rgba(123, 45, 142, 0.3);
-            color: white;
+        .google-login-btn:hover {
+            box-shadow: 0 1px 2px 0 rgba(60,64,67,.30), 0 1px 3px 1px rgba(60,64,67,.15);
+            border-color: #dadce0;
+            color: #3c4043;
             text-decoration: none;
         }
         
-        .upstox-icon {
-            width: 22px;
-            height: 22px;
-            background: white;
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            color: #7B2D8E;
-            font-size: 14px;
+        .google-icon {
+            width: 20px;
+            height: 20px;
+            background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHZpZXdCb3g9IjAgMCAxOCAxOCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0xNy42NCA5LjIwNWMwLS42MzktLjA1Ny0xLjI1Mi0uMTY0LTEuODQxSDl2My40ODFoNC44NDRjLS4yMDkgMS4xMjUtLjg0MyAyLjA3OC0xLjc5NiAyLjcxN3YyLjI1OGgMi45MDhjMS43MjgtMS42OTMgMi43MjgtNC4xOTIgMi43MjgtNy4yMTV6IiBmaWxsPSIjNDA5MUZGIi8+PHBhdGggZD0iTTkgMThjMi40MyAwIDQuNDY3LS44MDYgNS45NTYtMi4xOGwtMi45MDgtMi4yNTljLS44MDYuNTQtMS44MzcuODYtMy4wNDguODYtMi4zNDQgMC00LjMyOC0xLjU4NC00LjAzNi0zLjcxMkg5djIuMjU5em0tMy4yMjgtNS4yNThjLS42MzMgMC0xLjE0My0uNTQtMS4xNDMtMS4yMzEgMC0uNjkuNTEtMS4yMzEgMS4xNDMtMS4yMzEuNjM0IDAgMS4xNDMuNTQgMS4xNDMgMS4yMzEgMCAuNjktLjUwOSAxLjIzMS0xLjE0MyAxLjIzMXoiIGZpbGw9IiNGRjAwMDAiLz48cGF0aCBkPSJNOSAzLjQ4YzEuMzIxIDAgMi41MDguNDU0IDMuNDQgMS4zNDVsMi41ODItMi41ODFDMTMuNDYzLjg5MSAxMS40MjYgMCA5IDBjLTMuNzg2IDAtNyAyLjY5NC03IDZoMi45OTJDNS4zNDIgNC4wOTQgNi45NyAzLjQ4IDkgMy40OHoiIGZpbGw9IiNGRkQ1MDAiLz48cGF0aCBkPSJNOSAxOGMzLjc4NiAwIDctMi42OTQgNy02aC0yLjk5MkMxMi42NTggMTMuOTA2IDExLjAzIDE0LjUyIDkgMTQuNTJjLTIuMDMgMC0zLjY1OC0uNjE0LTQuOTktMS41MzVIMFYxNmMwIDMuMzA2IDMuMjE0IDYgNyA2eiIgZmlsbD0iIzMxQTg1MyIvPjwvZz48L3N2Zz4=') center/contain no-repeat;
         }
         
         .divider {
@@ -217,6 +208,17 @@
         [data-theme="dark"] .demo-input::placeholder {
             color: #94a3b8;
         }
+        
+        [data-theme="dark"] .google-login-btn {
+            background: #374151;
+            border-color: #4b5563;
+            color: #f9fafb;
+        }
+        
+        [data-theme="dark"] .google-login-btn:hover {
+            background: #4b5563;
+            border-color: #6b7280;
+        }
     </style>
 </head>
 <body>
@@ -239,15 +241,11 @@
                 <i class="fas fa-water"></i>
             </div>
             <h1 class="login-title">Welcome to River</h1>
-            <p class="login-subtitle">Connect your Upstox account to sync your portfolio</p>
+            <p class="login-subtitle">Your intelligent portfolio management platform</p>
             
-            <a href="{{ url_for('upstox_login') }}" class="upstox-login-btn">
-                <div class="upstox-icon">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 2L2 7v10c0 5.55 3.84 9.739 9 11 5.16-1.261 9-5.45 9-11V7l-10-5z"/>
-                    </svg>
-                </div>
-                Connect Upstox Account
+            <a href="{{ url_for('google_login') }}" class="google-login-btn">
+                <div class="google-icon"></div>
+                Continue with Google
             </a>
             
             <div class="divider">
