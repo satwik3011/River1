@@ -396,7 +396,12 @@ def debug_oauth():
     })
 
 if __name__ == '__main__':
-    # Run HTTP server - we'll use ngrok for HTTPS tunneling
-    print("🚀 Starting HTTP server on port 8000...")
-    print("💡 Use ngrok for HTTPS: 'ngrok http 8000'")
-    app.run(debug=True, host='0.0.0.0', port=8000)
+    # Get port from environment variable (for Railway/Heroku) or default to 8000
+    port = int(os.environ.get('PORT', 8000))
+    debug_mode = os.environ.get('FLASK_ENV', 'development') == 'development'
+    
+    if debug_mode:
+        print("🚀 Starting HTTP server on port", port)
+        print("💡 Use ngrok for HTTPS: 'ngrok http", port, "'")
+    
+    app.run(debug=debug_mode, host='0.0.0.0', port=port)

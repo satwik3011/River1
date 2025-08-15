@@ -19,7 +19,7 @@ class SetuAAService:
     
     def __init__(self):
         # Setu AA API configuration
-        self.base_url = os.getenv('SETU_AA_BASE_URL', 'https://aa-sandbox.setu.co')
+        self.base_url = os.getenv('SETU_AA_BASE_URL', 'https://demo-aa.setu.co')
         self.client_id = os.getenv('SETU_CLIENT_ID')
         self.client_secret = os.getenv('SETU_CLIENT_SECRET')
         self.redirect_uri = os.getenv('SETU_REDIRECT_URI', 'http://localhost:8000/auth/setu/callback')
