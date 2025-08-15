@@ -8,9 +8,19 @@
     <section class="portfolio-overview">
         <div class="section-header">
             <h1>Portfolio Overview</h1>
-            <div class="last-updated">
-                <i class="fas fa-clock"></i>
-                <span id="last-updated-time">Loading...</span>
+            <div class="header-actions">
+                <button id="connect-demat-btn" class="btn btn-primary" onclick="connectDemat()" style="display: none;">
+                    <i class="fas fa-link"></i>
+                    Connect Demat
+                </button>
+                <button id="sync-holdings-btn" class="btn btn-secondary" onclick="syncHoldings()" style="display: none;">
+                    <i class="fas fa-sync-alt"></i>
+                    Sync Holdings
+                </button>
+                <div class="last-updated">
+                    <i class="fas fa-clock"></i>
+                    <span id="last-updated-time">Loading...</span>
+                </div>
             </div>
         </div>
         

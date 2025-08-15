@@ -387,6 +387,50 @@ body {
     color: var(--gray-800);
 }
 
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.header-actions .btn {
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    border: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+}
+
+.header-actions .btn-primary {
+    background: var(--primary-color);
+    color: white;
+}
+
+.header-actions .btn-primary:hover {
+    background: var(--secondary-color);
+}
+
+.header-actions .btn-secondary {
+    background: var(--gray-100);
+    color: var(--gray-700);
+    border: 1px solid var(--gray-300);
+}
+
+.header-actions .btn-secondary:hover {
+    background: var(--gray-200);
+}
+
+.header-actions .btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
 .last-updated {
     display: flex;
     align-items: center;

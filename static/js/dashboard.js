@@ -9,6 +9,7 @@ class Dashboard {
     init() {
         this.loadData();
         this.setupEventListeners();
+        this.checkSetuStatus();
     }
 
     setupEventListeners() {
@@ -236,6 +237,80 @@ class Dashboard {
             }
         });
     }
+
+    // Setu Account Aggregator methods
+    async checkSetuStatus() {
+        try {
+            const response = await fetch('/api/setu/holdings/summary');
+            if (response.status === 401) {
+                // User not connected to Setu
+                document.getElementById('connect-demat-btn').style.display = 'inline-flex';
+            } else if (response.ok) {
+                // User connected to Setu
+                document.getElementById('sync-holdings-btn').style.display = 'inline-flex';
+                const summary = await response.json();
+                this.updateSetuHoldingsDisplay(summary);
+            }
+        } catch (error) {
+            console.error('Error checking Setu status:', error);
+            document.getElementById('connect-demat-btn').style.display = 'inline-flex';
+        }
+    }
+
+    updateSetuHoldingsDisplay(summary) {
+        if (summary.last_sync) {
+            const lastSync = new Date(summary.last_sync);
+            const syncElement = document.getElementById('last-updated-time');
+            if (syncElement) {
+                syncElement.textContent = `Setu sync: ${lastSync.toLocaleString()}`;
+            }
+        }
+    }
+
+    async connectDemat() {
+        try {
+            // Redirect to Setu OAuth flow
+            window.location.href = '/auth/setu';
+        } catch (error) {
+            console.error('Error connecting to Setu:', error);
+            this.app.showNotification('Failed to connect to Setu. Please try again.', 'error');
+        }
+    }
+
+    async syncHoldings() {
+        const syncBtn = document.getElementById('sync-holdings-btn');
+        const originalText = syncBtn.innerHTML;
+        
+        try {
+            // Show loading state
+            syncBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing...';
+            syncBtn.disabled = true;
+            
+            const response = await fetch('/api/setu/holdings/sync', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok && result.success) {
+                this.app.showNotification(`Successfully synced ${result.synced_count} holdings`, 'success');
+                // Reload dashboard data
+                await this.loadData();
+            } else {
+                this.app.showNotification(result.error || 'Failed to sync holdings', 'error');
+            }
+        } catch (error) {
+            console.error('Error syncing holdings:', error);
+            this.app.showNotification('Failed to sync holdings. Please try again.', 'error');
+        } finally {
+            // Restore button state
+            syncBtn.innerHTML = originalText;
+            syncBtn.disabled = false;
+        }
+    }
 }
 
 // Initialize dashboard when DOM is loaded
@@ -251,3 +326,16 @@ document.addEventListener('DOMContentLoaded', () => {
     
     initDashboard();
 });
+
+// Global functions for HTML onclick handlers
+function connectDemat() {
+    if (window.dashboard) {
+        window.dashboard.connectDemat();
+    }
+}
+
+function syncHoldings() {
+    if (window.dashboard) {
+        window.dashboard.syncHoldings();
+    }
+}

@@ -219,6 +219,86 @@
             background: #4b5563;
             border-color: #6b7280;
         }
+        
+        /* Modal styles */
+        .modal {
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .modal-content {
+            background-color: var(--white);
+            margin: 5% auto;
+            padding: 2rem;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+            animation: slideUp 0.3s ease;
+        }
+        
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            position: absolute;
+            right: 1rem;
+            top: 1rem;
+        }
+        
+        .close:hover,
+        .close:focus {
+            color: #000;
+        }
+        
+        .demat-steps {
+            margin: 1.5rem 0;
+        }
+        
+        .step {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .step:last-child {
+            border-bottom: none;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        [data-theme="dark"] .modal-content {
+            background-color: #1e293b;
+            color: #f8fafc;
+        }
+        
+        [data-theme="dark"] .close {
+            color: #94a3b8;
+        }
+        
+        [data-theme="dark"] .close:hover,
+        [data-theme="dark"] .close:focus {
+            color: #f8fafc;
+        }
+        
+        [data-theme="dark"] .step {
+            border-bottom-color: #475569;
+        }
     </style>
 </head>
 <body>
@@ -248,6 +328,11 @@
                 Continue with Google
             </a>
             
+            <a href="#" class="google-login-btn" style="background: #f8f9fa; color: #5f6368; border-color: #dadce0; margin-top: 0.5rem;" onclick="showDematInfo()">
+                <i class="fas fa-chart-line" style="width: 20px; text-align: center;"></i>
+                Connect Demat Account
+            </a>
+            
             <div class="divider">
                 <span>or</span>
             </div>
@@ -265,6 +350,34 @@
         </div>
     </div>
     
+    <!-- Demat Info Modal -->
+    <div id="dematModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeDematInfo()">&times;</span>
+            <h2>Connect Your Demat Account</h2>
+            <p>To access your portfolio holdings, you need to first log in and then connect your demat account through Setu's secure Account Aggregator framework.</p>
+            
+            <div class="demat-steps">
+                <div class="step">
+                    <strong>Step 1:</strong> Login to River using Google or email
+                </div>
+                <div class="step">
+                    <strong>Step 2:</strong> Go to your dashboard and click "Connect Demat"
+                </div>
+                <div class="step">
+                    <strong>Step 3:</strong> Authorize Setu to access your holdings data
+                </div>
+                <div class="step">
+                    <strong>Step 4:</strong> Your portfolio will be automatically synced
+                </div>
+            </div>
+            
+            <p><small><i class="fas fa-shield-alt"></i> Your data is secure and encrypted. Setu is a regulated Account Aggregator platform.</small></p>
+            
+            <button onclick="closeDematInfo()" class="demo-btn">Got it!</button>
+        </div>
+    </div>
+
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     <script>
         // Auto-hide flash messages after 5 seconds
@@ -279,6 +392,23 @@
                 }, 5000);
             });
         });
+        
+        // Demat modal functions
+        function showDematInfo() {
+            document.getElementById('dematModal').style.display = 'block';
+        }
+        
+        function closeDematInfo() {
+            document.getElementById('dematModal').style.display = 'none';
+        }
+        
+        // Close modal when clicking outside of it
+        window.onclick = function(event) {
+            const modal = document.getElementById('dematModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
     </script>
 </body>
 </html>
