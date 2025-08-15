@@ -20,6 +20,3 @@
   from = "/*"
   to = "/.netlify/functions/app/:splat"
   status = 200
-
-[functions]
-  python_runtime = "python3.9"
