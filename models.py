@@ -20,13 +20,7 @@ class User(UserMixin, db.Model):
     upstox_extended_token = db.Column(db.Text, nullable=True)  # Long-term token
     upstox_token_expires_at = db.Column(db.DateTime, nullable=True)  # Token expiry
     
-    # Setu Account Aggregator fields
-    setu_user_id = db.Column(db.String(100), unique=True, nullable=True, index=True)
-    setu_access_token = db.Column(db.Text, nullable=True)  # Setu access token
-    setu_refresh_token = db.Column(db.Text, nullable=True)  # Setu refresh token
-    setu_token_expires_at = db.Column(db.DateTime, nullable=True)  # Token expiry
-    is_setu_active = db.Column(db.Boolean, default=False)
-    setu_last_sync = db.Column(db.DateTime)  # Last portfolio sync time
+
     
     # User profile data
     email = db.Column(db.String(120), unique=True, nullable=False, index=True)
@@ -193,82 +187,3 @@ class RecommendationHistory(db.Model):
     
     def __repr__(self):
         return f'<RecommendationHistory {self.stock.symbol if self.stock else "Unknown"}: {self.previous_recommendation} -> {self.new_recommendation}>'
-
-class SetuConsentRequest(db.Model):
-    """Model for tracking Setu AA consent requests"""
-    __tablename__ = 'setu_consent_requests'
-    
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
-    consent_id = db.Column(db.String(100), unique=True, nullable=False, index=True)
-    consent_handle = db.Column(db.String(100), nullable=True)
-    
-    # Consent details
-    purpose = db.Column(db.String(200), default='Portfolio Holdings')
-    data_life = db.Column(db.JSON)  # Data life period
-    frequency = db.Column(db.JSON)  # Data fetch frequency
-    fi_types = db.Column(db.JSON)   # Financial Information types requested
-    
-    # Status tracking
-    status = db.Column(db.Enum('PENDING', 'ACTIVE', 'PAUSED', 'REVOKED', 'EXPIRED', name='consent_status'), 
-                      default='PENDING', nullable=False, index=True)
-    consent_start = db.Column(db.DateTime)
-    consent_expiry = db.Column(db.DateTime)
-    
-    # Timestamps
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
-    # Relationships
-    user = db.relationship('User', backref='setu_consents')
-    
-    def __repr__(self):
-        return f'<SetuConsentRequest {self.consent_id}: {self.status}>'
-
-class SetuHolding(db.Model):
-    """Model for storing holdings fetched from Setu AA"""
-    __tablename__ = 'setu_holdings'
-    
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
-    consent_id = db.Column(db.String(100), db.ForeignKey('setu_consent_requests.consent_id'), nullable=False)
-    
-    # Financial Information Provider details
-    fip_id = db.Column(db.String(50), nullable=False)  # Bank/Broker ID
-    fip_name = db.Column(db.String(100))
-    account_id = db.Column(db.String(100))
-    account_type = db.Column(db.String(50))  # DEMAT, TRADING, etc.
-    
-    # Holding details
-    instrument_name = db.Column(db.String(200))
-    instrument_type = db.Column(db.String(50))  # EQUITY, MUTUAL_FUND, etc.
-    isin = db.Column(db.String(20), index=True)
-    symbol = db.Column(db.String(20), index=True)
-    exchange = db.Column(db.String(20))
-    
-    # Quantity and value
-    units = db.Column(db.Float)
-    average_cost = db.Column(db.Float)
-    current_value = db.Column(db.Float)
-    market_price = db.Column(db.Float)
-    
-    # Additional metadata
-    raw_data = db.Column(db.JSON)  # Store complete response for debugging
-    
-    # Timestamps
-    holding_date = db.Column(db.Date)  # Date of the holding record
-    fetched_at = db.Column(db.DateTime, default=datetime.utcnow)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
-    # Relationships
-    user = db.relationship('User', backref='setu_holdings')
-    consent = db.relationship('SetuConsentRequest', backref='holdings')
-    
-    # Indexes for efficient queries
-    __table_args__ = (
-        Index('idx_user_symbol', 'user_id', 'symbol'),
-        Index('idx_user_holding_date', 'user_id', 'holding_date'),
-    )
-    
-    def __repr__(self):
-        return f'<SetuHolding {self.symbol}: {self.units} units>'
